@@ -2,13 +2,14 @@ package preparation.processor
 
 import java.io.FileReader
 
-import Extraction.fields.CricketMatch
+import preparation.Modal.CricketMatch
+import org.slf4j.{Logger, LoggerFactory}
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.Constructor
 import org.yaml.snakeyaml.representer.Representer
 
 object YamlParser {
-
+@transient lazy val logger = LoggerFactory.getLogger(this.getClass)
   def parseYamlFile(path: String): Option[CricketMatch] = {
     var yamlFile = None: Option[FileReader]
 
@@ -20,7 +21,10 @@ object YamlParser {
       Some(yaml.load(yamlFile.get).asInstanceOf[CricketMatch])
     }
     catch {
-      case e: Exception => None
+
+      case e: Exception =>
+        logger.error("unable to load file:" + " exception " + e.getMessage)
+        None
     }
     finally {
       yamlFile match {
