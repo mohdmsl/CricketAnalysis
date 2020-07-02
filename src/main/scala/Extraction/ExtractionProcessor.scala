@@ -1,7 +1,7 @@
 package Extraction
 
 import Extraction.fields.CricketMatch
-import Extraction.records.MostRunsRecordGenerator
+import Extraction.records.{MostRunsInInningsGenerator, MostRunsRecordGenerator}
 import com.typesafe.config.ConfigFactory
 import commonutils.HadoopFileSystem
 import org.apache.hadoop.fs.FileSystem
@@ -31,9 +31,11 @@ class ExtractionProcessor(sc: SparkSession) {
     val sourcePath = userHome + appDirectory + sourceDirectory
     val files = hadoopFs.listDirectories(sourcePath)
     val schema = Encoders.product[CricketMatch].schema
+    val targetPath = userHome + appDirectory + calculated
     import sc.implicits._
     files.foreach(file => {
-      MostRunsRecordGenerator.generateMostRuns(sc, schema, file)
+      MostRunsRecordGenerator.generateMostRuns(sc, schema, file, targetPath)
+      MostRunsInInningsGenerator.generateMostRunsInInnings(sc, schema, file, targetPath)
 
     })
 

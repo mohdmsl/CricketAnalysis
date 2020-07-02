@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory.getLogger
 
 object MostRunsRecordGenerator {
   @transient lazy val logger = getLogger(this.getClass)
-  def generateMostRuns(sc:SparkSession, schema: StructType, file: String) = {
+  def generateMostRuns(sc:SparkSession, schema: StructType, file: String, targetPath: String) = {
+    import sc.implicits._
     val df = sc.read.schema(schema).json(file.replace("file:", "")).as[CricketMatch]
     logger.info("reading file " + file)
     val deliveryDF = df.withColumn("matchID", row_number().over(Window.orderBy("info")))
@@ -34,10 +35,8 @@ object MostRunsRecordGenerator {
 
     val mostRunsInCareerDf = mostRunsDF.join(matchesPlayedByBatsman, "batsman").withColumn("average", col("runs") / (col("matches") - col("NO")))
 
-
-    val targetPath = userHome + appDirectory + calculated + "mostRuns/" + System.currentTimeMillis()
     logger.info("writing to output path: " + targetPath)
-    mostRunsInCareerDf.write.json(targetPath)
+    mostRunsInCareerDf.write.json(targetPath + "mostRuns/" + System.currentTimeMillis())
     logger.info("file saved successfully")
   }
 }
